@@ -27,16 +27,32 @@ df_orig = pd.read_csv(os.path.join(DATAPATH, 'train.csv'), encoding='utf-8')
 
 print("Number of samples = {}".format(len(df_orig)))
 
-## Check missings
+## Select Feature to Analysis
 subs = r"0.05|0.5|2.0|8.0|16.0|32.0"
-mbpt_txt = [x for x in df_orig.columns if re.search(subs, str(x))]
-
-subs = r"imputed|mi"
-mi_col = [x for x in mbpt_txt if re.search(subs, str(x))]
+m_subs = r"imputed|mi"
 
 if args['feature'] == 'raw':
+    mbpt_txt = [x for x in df_orig.columns if re.search(subs, str(x))]
+    mbpt_txt = [x for x in mbpt_txt if not re.search(m_subs, str(x))]
+    feature = mbpt_txt
+elif args['feature'] == 'fev':
+    mbpt_txt = [x for x in df_orig.columns if re.search(subs, str(x))]
+    mbpt_txt = [x for x in mbpt_txt if not re.search(m_subs, str(x))]
+
+    get_subs = r"FEV"
+    mbpt_txt = [x for x in mbpt_txt if re.search(get_subs, str(x))]
+
+    feature = mbpt_txt
+elif args['feature'] == 'fev_fvc':
+    mbpt_txt = [x for x in df_orig.columns if re.search(subs, str(x))]
+    mbpt_txt = [x for x in mbpt_txt if not re.search(m_subs, str(x))]
+
+    get_subs = r"FEV|FVC"
+    mbpt_txt = [x for x in mbpt_txt if re.search(get_subs, str(x))]
+
     feature = mbpt_txt
 else:
+    mi_col = [x for x in df_orig.columns if re.search(m_subs, str(x))]
     feature = mi_col
 
 ## Hyperparameter
