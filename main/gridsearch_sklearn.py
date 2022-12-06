@@ -86,7 +86,7 @@ elif args['model'] == 'svm':
             'gamma':['scale', 'auto']
         },
     ]
-    model = SVC(random_state=1004)
+    model = SVC(random_state=1004, probability=True)
     
 elif args['model'] == 'ann':
     param_grids = {
