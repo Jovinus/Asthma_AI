@@ -108,7 +108,7 @@ elif args['model'] == 'ann':
 gridsearch = GridSearchCV(
     estimator=model,
     param_grid=param_grids,
-    scoring='accuracy',
+    scoring='neg_log_loss',
     cv=5,
     n_jobs=args['n_jobs'], 
     refit=True,
