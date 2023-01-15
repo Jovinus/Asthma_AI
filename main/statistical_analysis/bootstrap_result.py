@@ -4,10 +4,21 @@ import pandas as pd
 import numpy as np
 
 from sklearn.metrics import accuracy_score, f1_score, roc_auc_score, \
-    average_precision_score, precision_score, recall_score
+    average_precision_score, precision_score, recall_score, confusion_matrix
+from imblearn.metrics import specificity_score
 from sklearn.utils import resample
 
 pd.set_option("display.max_columns", None)
+
+# %%
+def get_ppv_npv(y_true, y_pred, option='ppv'):
+    tp, fn, fp, tn = confusion_matrix(y_true, y_pred).ravel()
+    ppv = (tp)/(tp+fp)
+    npv = (tn)/(tn+fn)
+    if option == 'ppv':
+        return ppv
+    elif option == 'npv':
+        return npv
 
 # %%
 def calculate_bootstrap_metric(
@@ -26,6 +37,8 @@ def calculate_bootstrap_metric(
     precision = []
     recall = []
     specificity = []
+    ppv = []
+    npv = []
     
 
     for i in range(n_bootstrap):
@@ -51,16 +64,28 @@ def calculate_bootstrap_metric(
             sampled_df[predict], 
         )
         
-        calc_specificity = recall_score(
+        calc_specificity = specificity_score(
             sampled_df[target], 
             sampled_df[predict], 
-            pos_label=0
+            pos_label=1,
         )
         
         calc_f1 = f1_score(
             sampled_df[target], 
             sampled_df[predict], 
             average="binary"
+        )
+        
+        calc_ppv = get_ppv_npv(
+            sampled_df[target],
+            sampled_df[predict],
+            option='ppv'
+        )
+        
+        calc_npv = get_ppv_npv(
+            sampled_df[target],
+            sampled_df[predict],
+            option='npv'
         )
         
         if model == "conventional":
@@ -91,11 +116,15 @@ def calculate_bootstrap_metric(
         f1.append(calc_f1)
         auroc.append(calc_auroc)
         auprc.append(calc_auprc)
+        ppv.append(calc_ppv)
+        npv.append(calc_npv)
         
     print(f"Accuracy = {np.mean(acc):.3f} +- {np.std(acc):.3f}")
     print(f"Precision = {np.mean(precision):.3f} +- {np.std(precision):.3f}")
     print(f"Recall(Sensitivity) = {np.mean(recall):.3f} +- {np.std(recall):.3f}")
     print(f"Specificity = {np.mean(specificity):.3f} +- {np.std(specificity):.3f}")
+    print(f"PPV = {np.mean(ppv):.3f} +- {np.std(ppv):.3f}")
+    print(f"NPV = {np.mean(npv):.3f} +- {np.std(npv):.3f}")
     print(f"F1 Score = {np.mean(f1):.3f} +- {np.std(f1):.3f}")
     print(f"AUROC = {np.mean(auroc):.3f} +- {np.std(auroc):.3f}")
     print(f"AUPRC = {np.mean(auprc):.3f} +- {np.std(auprc):.3f}\n")
@@ -104,7 +133,9 @@ def calculate_bootstrap_metric(
         "accuracy": acc,
         "precision": precision,
         "recall": recall,
-        "specificity": recall,
+        "specificity": specificity,
+        "ppv":ppv,
+        "npv":npv,
         "f1": f1, 
         "auroc": auroc, 
         "auprc": auprc, 
@@ -270,6 +301,9 @@ if __name__ == "__main__":
     total_result.append(result)
     
     df_orig = pd.read_csv(os.path.join(DATAPATH, "rf_imputed_test_result.csv"))
+    df_orig = df_orig.assign(
+        pred_class = lambda x: np.where(x['pred_proba'] >= 0.526, 1, 0)
+    )
     print("Random Forest Imputed")
     result = calculate_bootstrap_metric(
         df_log=df_orig,

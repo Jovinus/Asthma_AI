@@ -5,7 +5,7 @@ import numpy as np
 import seaborn as sns
 
 from glob import glob
-from sklearn.metrics import roc_curve, precision_recall_curve
+from sklearn.metrics import roc_curve, precision_recall_curve, PrecisionRecallDisplay
 from IPython.display import display
 
 pd.set_option("display.max_columns", None)
@@ -13,7 +13,7 @@ pd.set_option("display.max_columns", None)
 # %%
 def calc_interp_curve(dataframe, y, score):
     
-    fpr_base = np.arange(0, 1, step=0.01)
+    fpr_base = np.arange(0, 1, step=0.001)
     ## Conventional
     fpr, tpr, thresholds = roc_curve(
         y_true = dataframe[y],
@@ -37,7 +37,7 @@ def get_roc_curve(file_list):
         'fpr':fpr_base,
         'tpr':tpr_interp,
         'thresholds':thresholds_interp,
-        'model':"Conventional (0.856, 0.852-0.861)",
+        'model_auroc':"Conventional (0.856, 0.852-0.861)",
     }
     conventional_result = pd.DataFrame(conventional_result)
     
@@ -48,7 +48,7 @@ def get_roc_curve(file_list):
         'fpr':fpr_base,
         'tpr':tpr_interp,
         'thresholds':thresholds_interp,
-        'model':"SVM (0.935, 0.932-0.938)",
+        'model_auroc':"SVM (0.935, 0.932-0.938)",
     }
     svm_result = pd.DataFrame(svm_result)
     
@@ -60,7 +60,7 @@ def get_roc_curve(file_list):
         'fpr':fpr_base,
         'tpr':tpr_interp,
         'thresholds':thresholds_interp,
-        'model':"LR (0.933, 0.9330-0.936)",
+        'model_auroc':"LR (0.933, 0.9330-0.936)",
     }
     lr_result = pd.DataFrame(lr_result)
     
@@ -72,7 +72,7 @@ def get_roc_curve(file_list):
         'fpr':fpr_base,
         'tpr':tpr_interp,
         'thresholds':thresholds_interp,
-        'model':"ANN (0.942, 0.940-0.945)",
+        'model_auroc':"ANN (0.942, 0.940-0.945)",
     }
     ann_result = pd.DataFrame(ann_result)
     
@@ -84,7 +84,7 @@ def get_roc_curve(file_list):
         'fpr':fpr_base,
         'tpr':tpr_interp,
         'thresholds':thresholds_interp,
-        'model':"XGB (0.941, 0.938-0.943)",
+        'model_auroc':"XGB (0.941, 0.938-0.943)",
     }
     xgb_result = pd.DataFrame(xgb_result)
     
@@ -96,7 +96,7 @@ def get_roc_curve(file_list):
         'fpr':fpr_base,
         'tpr':tpr_interp,
         'thresholds':thresholds_interp,
-        'model':"RF (0.950, 0.948-0.952)",
+        'model_auroc':"RF (0.950, 0.948-0.952)",
     }
     rf_result = pd.DataFrame(rf_result)
     
@@ -107,15 +107,20 @@ def get_roc_curve(file_list):
 # %%
 def calc_interp_prc(dataframe, y, score):
     
-    recall_base = np.arange(0, 1, step=0.01)
+    recall_base = np.arange(0, 1, step=0.001)
+    
     ## Conventional
     precision, recall, thresholds = precision_recall_curve(
         y_true = dataframe[y],
         probas_pred = dataframe[score],
         pos_label=1,
     )
-
+    
+    precision = np.flip(precision)
+    recall = np.flip(recall)
+    
     precision_interp = np.interp(recall_base, recall, precision)
+    precision_interp[-1] = 0
     # threshold_interp = np.interp(recall_base, recall, thresholds)
     
     return recall_base, precision_interp#, threshold_interp
@@ -131,7 +136,7 @@ def get_prc_curve(file_list):
         'recall':recall_base,
         'precision':precision_interp,
         # 'thresholds':thresholds_interp,
-        'model':"Conventional (0.856, 0.852-0.861)",
+        'model_auprc':"Conventional (0.759, 0.751-0.766)",
     }
     conventional_result = pd.DataFrame(conventional_result)
     
@@ -142,7 +147,7 @@ def get_prc_curve(file_list):
         'recall':recall_base,
         'precision':precision_interp,
         # 'thresholds':thresholds_interp,
-        'model':"SVM (0.935, 0.932-0.938)",
+        'model_auprc':"SVM (0.868, 0.860-0.875)",
     }
     svm_result = pd.DataFrame(svm_result)
     
@@ -154,7 +159,7 @@ def get_prc_curve(file_list):
         'recall':recall_base,
         'precision':precision_interp,
         # 'thresholds':thresholds_interp,
-        'model':"LR (0.933, 0.9330-0.936)",
+        'model_auprc':"LR (0.900, 0.885-0.914)",
     }
     lr_result = pd.DataFrame(lr_result)
     
@@ -166,7 +171,7 @@ def get_prc_curve(file_list):
         'recall':recall_base,
         'precision':precision_interp,
         # 'thresholds':thresholds_interp,
-        'model':"ANN (0.942, 0.940-0.945)",
+        'model_auprc':"ANN (0.890, 0.885-0.896)",
     }
     ann_result = pd.DataFrame(ann_result)
     
@@ -178,7 +183,7 @@ def get_prc_curve(file_list):
         'recall':recall_base,
         'precision':precision_interp,
         # 'thresholds':thresholds_interp,
-        'model':"XGB (0.941, 0.938-0.943)",
+        'model_auprc':"XGB (0.896, 0.891-0.901)",
     }
     xgb_result = pd.DataFrame(xgb_result)
     
@@ -190,7 +195,7 @@ def get_prc_curve(file_list):
         'recall':recall_base,
         'precision':precision_interp,
         # 'thresholds':thresholds_interp,
-        'model':"RF (0.950, 0.948-0.952)",
+        'model_auprc':"RF (0.909, 0.905-0.914)",
     }
     rf_result = pd.DataFrame(rf_result)
     
@@ -235,7 +240,7 @@ def plot_roc_curve_figure():
         data=result, 
         x='fpr', 
         y='tpr', 
-        hue='model', 
+        hue='model_auroc', 
         hue_order=hue_order, 
         ax=ax,
         linewidth=2.5
@@ -259,12 +264,12 @@ def plot_prc_curve_figure():
     
     result = get_prc_curve(file_list=file_list)
     hue_order = [
-        "Conventional (0.856, 0.852-0.861)",
-        "LR (0.933, 0.9330-0.936)",
-        "SVM (0.935, 0.932-0.938)",
-        "RF (0.950, 0.948-0.952)",
-        "ANN (0.942, 0.940-0.945)",
-        "XGB (0.941, 0.938-0.943)",
+        "Conventional (0.759, 0.751-0.766)",
+        "LR (0.900, 0.885-0.914)",
+        "SVM (0.868, 0.860-0.875)",
+        "RF (0.909, 0.905-0.914)",
+        "ANN (0.890, 0.885-0.896)",
+        "XGB (0.896, 0.891-0.901)",
     ]
     
     fig, ax = plt.subplots(1, 1, figsize=(10, 10), facecolor='white')
@@ -272,7 +277,7 @@ def plot_prc_curve_figure():
         data=result, 
         x='recall', 
         y='precision', 
-        hue='model', 
+        hue='model_auprc', 
         hue_order=hue_order, 
         ax=ax,
         linewidth=2.5
@@ -289,4 +294,43 @@ def plot_prc_curve_figure():
     return None
 
 plot_prc_curve_figure()
+# %%
+file_list = glob(r"../../result/test/*impu*")
+
+dataframe = pd.read_csv(file_list[4])
+
+# %%
+recall_base = np.arange(0, 1, step=0.01)
+
+## Conventional
+precision, recall, thresholds = precision_recall_curve(
+    y_true = dataframe['Asthma'],
+    probas_pred = dataframe['pred_proba'],
+    pos_label=1,
+)
+
+precision = np.flip(precision)
+recall = np.flip(recall)
+
+precision_interp = np.interp(recall_base, recall, precision)
+
+# PrecisionRecallDisplay(precision=precision, recall=recall,).plot()
+
+# %%
+from tableone import TableOne
+
+import pandas as pd
+# %%
+df_orig = pd.read_csv("../../result/bootstrapped/total_results.csv")
+
+df_to_stat = df_orig.query("model.isin(['conventional', 'rf_imputed'])").reset_index(drop=True)
+# %%
+TableOne(
+    data=df_to_stat, 
+    columns=['auroc', 'auprc', 'recall', 'specificity', 'ppv', 'npv', 'accuracy'], 
+    groupby=['model'], 
+    pval=True,
+    pval_test_name=True, 
+    decimals=3
+    )
 # %%
