@@ -22,7 +22,7 @@ The codes for `Model Development` in Methods of the paper are available.
 
 - See `./main/model/gridsearch_xgb.py` and `./main/model/infecrence_xgb.py`
 
-### 2. Logistic Regression, Random Forest, SVM, ANN
+### 2. Logistic Regression, Random Forest, SVM, and ANN
 
 - This code covers the gridsearch process, training with the best params for SVM, RF, ANN, and LR, and inferecing on test data
 
